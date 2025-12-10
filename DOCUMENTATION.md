@@ -22,7 +22,7 @@ The system is a **monolithic Python application** (Bot + API) paired with a **Re
 - **Design Pattern**: The Command Pattern (Data-Driven) .
 - **Why this solves the problem**: It eliminates massive if/else chains in your bot code. Instead of hardcoding logic, the bot acts as a generic "engine" that executes whatever instructions are found in the JSON database. This decouples the logic (Python code) from the behavior (JSON data).
 
-##### How does is work?
+##### 1.1.1.1 User Work Flow
 
 1. Input:
     - Event: A Discord message object (e.g., content=!report).
@@ -45,7 +45,7 @@ The system is a **monolithic Python application** (Bot + API) paired with a **Re
     - The specific function executes (e.g., await channel.send("Hello")).
     - Database update (if the action was ENTER_STATE).
 
-##### Associated Grammar Rules (Runtime)
+##### 1.1.1.2 User Associated Grammar Rules (Runtime)
 
 | Rule Name | Pseudo-Grammar | Purpose | Implementation Difficulty | Example | Related Modules |
 |---|---|---|---|---|---|
@@ -62,25 +62,45 @@ The system is a **monolithic Python application** (Bot + API) paired with a **Re
 - **Design Pattern**: The Visitor Pattern.
 - **Why this solves the problem**: ANTLR generates a complex "Parse Tree" that is hard to work with. The Visitor pattern provides a structured way to "visit" every node in that tree and return a value (the simplified JSON). This separates the parsing logic from the rest of your application
 
-##### How does is work?
+##### 1.1.2.1 Admin Work Flow
 
 1. Input:
+    - Source: Admin types code in the Monaco Editor (Web UI).
     - Raw Text String from Monaco Editor: `WORKFLOW demo ON message { ACTION: BAN_USER }`
-    - Context: The User's current state from the database (e.g., state="awaiting_reason").
-2. Logic (The "Tree Walker"):
-    - The raw text is fed into the generated `GuildFlowParser`, which creates a `Parse Tree`
-    - Your custom `GuildFlowCompiler` (which inherits from `Visitor`) is instantiated.
-    - You call `compiler.visit(tree)`.
-    - The Visit Loop:
-        - The compiler hits the Workflow node $\rightarrow$ calls `visitWorkflow_def`.
-        - `visitWorkflow_def` creates a dictionary { "type": "WORKFLOW" }.
-        - It then calls `self.visit(child)` on all children (`the Actions`).
-        - It aggregates the results into a list: "actions": `[{...}, {...}]`..
-3. Output:
-    - A clean JSON Object that is saved to the SQLite workflows table.
-    - Validation: If the Visitor hits a node it doesn't understand (or a syntax error occurs), it raises an exception immediately, preventing bad code from entering the DB.
+    - Action: Admin clicks the "Deploy" button.
+    - Payload: The React Frontend sends a POST request to the backend:
 
-##### Associated Grammar Rules (Runtime)
+    ```JSON
+    {
+        "admin_id": "847382...",
+        "script_content": "WORKFLOW anti_spam..."
+    }
+    ```
+
+    - Context: The User's current state from the database (e.g., state="awaiting_reason").
+2. Logic (The "Tree Walker"): This logic happens inside your Python Backend (main.py), which runs both `FastAPI (API)` and `discord.py (Bot)`.
+    - Step A: The Compiler (Visitor Pattern):
+        1. The FastAPI Endpoint receives the text.
+        2. It invokes the GuildFlowParser to generate the Parse Tree.
+        3. It calls compiler.visit(tree).
+        4. **Validation**: If the Visitor finds a syntax error, it throws an exception. FastAPI catches this and returns a `400 Error` to the Web UI (e.g., "Error at line 3: Missing '}'").
+        5. **Success**: If valid, the Visitor returns the JSON Object.
+    - Step B: The Persistence:
+        1. The JSON is saved to the SQLite workflows table.
+        2. Crucial: The bot's internal memory cache is updated so it doesn't need to read the DB for the very next message.
+    - Step C: The Notification (The Missing Link)
+        1. The API retrieves the running Bot Instance.
+        2. It looks up the configured #mod-logs channel ID.
+        3. It triggers a background task: `await bot.get_channel(log_channel_id).send(...)`.
+3. Output:
+    - Output 1 (To Database): The logic file is updated.
+    - Output 2 (To Web UI): A `200 OK response`. The admin sees a green `"Success"` toast on the website.
+    - Output 3 (To Discord):
+        - Channel: `#mod-logs`
+        - Message: "✅ Deployment Successful: Workflow anti_spam updated by Admin."
+        - Why this matters: This confirms to the admin (and other mods) that the code is actually live on the server.
+
+##### 1.1.2.2 Admin Associated Grammar Rules (Runtime)
 
 | Rule Name | Pseudo-Grammar | Purpose | Implementation Difficulty | Example | Related Modules |
 |---|---|---|---|---|---|
@@ -91,13 +111,100 @@ The system is a **monolithic Python application** (Bot + API) paired with a **Re
 
 ### 1.2 Technology Stack
 
-* **Core Logic:** Python 3.10+
-* **Bot Framework:** `discord.py` (v2.0+)
-* **API Framework:** `FastAPI` + `Uvicorn`
-* **Language Parsing:** `ANTLR4` (Python Target)
-* **Database:** `SQLite` (File-based)
-* **Frontend:** `React` (Vite) or `NextJS` usign + `HTML Textarea` (MVP) or `Monaco Editor` (P2)
-* **Hosting:** Localhost (Primary Dev) / Render.com (Production)
+- **Core Logic:** Python 3.10+
+- **Bot Framework:** `discord.py` (v2.0+)
+- **API Framework:** `FastAPI` + `Uvicorn`
+- **Language Parsing:** `ANTLR4` (Python Target)
+- **Database:** `SQLite` (File-based)
+- **Frontend:** `React` (Vite) or `NextJS` usign + `HTML Textarea` (MVP) or `Monaco Editor` (P2)
+- **Hosting:** Localhost (Primary Dev) / Render.com (Production)
+
+### 1.3 Database Schema
+
+```SQL
+-- 1. THE LOGIC TABLE (Read-Mostly)
+-- Stores the compiled instructions generated by the Admin Website.
+CREATE TABLE IF NOT EXISTS workflows (
+    workflow_id TEXT PRIMARY KEY,   -- The name defined in DSL: 'WORKFLOW my_flow ...'
+    trigger_event TEXT NOT NULL,    -- 'message', 'member_join', 'button_click'
+    trigger_filter TEXT,            -- Optional: The compiled WHERE clause (e.g. "content contains '!help'")
+    compiled_json TEXT NOT NULL,    -- The huge JSON output from your Visitor/Compiler
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT 1     -- Allows 'Soft Delete' / Disabling without deleting data
+);
+
+-- Index for Speed: The Bot queries this EVERY time a message comes in.
+CREATE INDEX idx_trigger ON workflows(trigger_event);
+
+
+-- 2. THE CONTEXT TABLE (Read-Write)
+-- Stores the "Memory" of every user currently interacting with the bot.
+CREATE TABLE IF NOT EXISTS active_sessions (
+    user_id TEXT NOT NULL,          -- Discord User ID (String)
+    workflow_id TEXT NOT NULL,      -- Link to the workflow they are in
+    current_state TEXT NOT NULL,    -- 'start', 'awaiting_reason', 'step_2'
+    variables JSON DEFAULT '{}',    -- Dynamic storage: {"strikes": 1, "reason": "spam"}
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Composite Primary Key: A user can only be in ONE instance of a specific workflow at a time.
+    PRIMARY KEY (user_id, workflow_id),
+    FOREIGN KEY (workflow_id) REFERENCES workflows(workflow_id) ON DELETE CASCADE
+);
+```
+
+#### Table 1: `workflows`
+
+1. Meaning:
+    - Represents the **Instruction Manual** containing the static rules of the server.
+    - Stores compiled workflow JSON so parsing is not repeated.
+    - Represents **Flow 2 (Admin Deployment) output**.
+2. Code Usage
+    - Compiler (Flow 2 - Write)
+
+        ```SQL
+        INSERT OR REPLACE INTO workflows (workflow_id, trigger_event, compiled_json)
+        VALUES (...);
+        ```
+
+    - Bot (Flow 1 - Read)
+
+        ```SQL
+        SELECT * FROM workflows WHERE trigger_event = 'message';
+        ```
+
+3. Optimization: Loaded into RAM dictionary cache on startup to avoid disk I/O.
+
+#### Table 2: `active_sessions`
+
+1. Meaning
+    - Represents **Short-Term Memory**.
+    - Tracks per-user Finite State Machine progression (multi-step workflows).
+    - Handles different states for different users simultaneously.
+2. Code Usage
+    - Bot (Flow 1 - Read)
+
+        ```SQL
+        SELECT current_state FROM active_sessions WHERE user_id = '123';
+        ```
+
+    - Bot (Flow 1 - Write)
+        - State Transition:
+
+            ```SQL
+            UPDATE active_sessions SET current_state = 'next_step' WHERE user_id = '123';
+            ```
+
+        - Variable Update:
+
+            ```SQL
+            UPDATE active_sessions SET variables = '{"strikes": 2}' WHERE user_id = '123';'123';
+            ```
+
+        - Workflow Completion:
+
+            ```SQL
+            DELETE FROM active_sessions WHERE user_id = '123';
+            ```
 
 ## 2. Directory Structure
 
