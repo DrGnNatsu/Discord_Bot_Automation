@@ -10,15 +10,84 @@ The system is a **monolithic Python application** (Bot + API) paired with a **Re
 
 ### 1.1 Data Flow
 
-#### 1.1.1 User Interaction (The Runtime Execution)
-
-**Goal**: The bot executes logic in real-time when a user chats in Discord. Design Pattern: The Command Pattern (Data-Driven) Why this solves the problem: It eliminates massive if/else chains in your bot code. Instead of hardcoding logic, the bot acts as a generic "engine" that executes whatever instructions are found in the JSON database. This decouples the logic (Python code) from the behavior (JSON data).
-
 1. **Input:** User types script in **React Web UI**.
 2. **Transport:** Frontend sends script string to **FastAPI Endpoint** (`POST /deploy`).
 3. **Compilation:** Python backend runs **ANTLR4 Visitor** to convert Script → **JSON State Machine**.
 4. **Storage:** JSON logic is saved to **SQLite** (`workflows` table).
 5. **Execution:** **Discord Bot** listens for events, queries SQLite, and executes the JSON instructions.
+
+#### 1.1.1 User Interaction (The Runtime Execution)
+
+- **Goal**: The bot executes logic in real-time when a user chats in Discord.
+- **Design Pattern**: The Command Pattern (Data-Driven) .
+- **Why this solves the problem**: It eliminates massive if/else chains in your bot code. Instead of hardcoding logic, the bot acts as a generic "engine" that executes whatever instructions are found in the JSON database. This decouples the logic (Python code) from the behavior (JSON data).
+
+##### How does is work?
+
+1. Input:
+    - Event: A Discord message object (e.g., content=!report).
+    - Context: The User's current state from the database (e.g., state="awaiting_reason").
+2. Logic (The "Command Dispatcher"):
+    - The bot queries SQLite to retrieve the Action List (JSON) associated with the current state or trigger.
+    - It iterates through the list. For each item, it looks up the type in a pre-defined Command Map.
+    - The Command Map: A Python dictionary mapping string keys to functions.
+
+    ```python
+    COMMAND_MAP = {
+        "SEND_MESSAGE": actions.send_message,
+        "BAN_USER": actions.ban_user,
+        "ENTER_STATE": actions.transition_state
+    }
+    ```
+
+    - It calls the function: `COMMAND_MAP[action["type"]](action["params"])`.
+3. Output:
+    - The specific function executes (e.g., await channel.send("Hello")).
+    - Database update (if the action was ENTER_STATE).
+
+##### Associated Grammar Rules (Runtime)
+
+| Rule Name | Pseudo-Grammar | Purpose | Implementation Difficulty | Example | Related Modules |
+|---|---|---|---|---|---|
+| **Trigger Filter** (P1) | ON message WHERE content contains "text" | Filters events to only proceed when specific criteria are met. | ⭐⭐ (Med)  | `ON message WHERE user_id IS NOT "admin" AND content CONTAINS "bad word"`| Event Listener  |
+| **Action: Reply** (P1) | ACTION: SEND_MESSAGE channel=#log "Bad word detected" | Sends a message to a specified channel or user.  | ⭐ (Low) | `ACTION: SEND_MESSAGE channel=#mod_alerts "User {user} triggered a warning."` | Messaging API |
+| **Action: Punish** (P1) | ACTION: TIMEOUT_USER duration="1h"  | Enforces moderation actions on a user. | ⭐ (Low) | `ACTION: TIMEOUT_USER duration="1h" reason="Spamming"` | Moderation API |
+| **State Transition** (P2) | 'ENTER_STATE' ID  | The Navigator. Moves the user from one step of the flow to another, updating their persistent session | ⭐ (Low) SQL UPDATE query. | `ENTER_STATE awaiting_response` | Bot (user_states table update), DB |
+| **Conditional Logic** (P3) | IF condition { ... } ELSE { ... }  | Allows branching execution based on runtime conditions. | ⭐⭐⭐ (High) | `IF user_role IS "member" { ACTION: WARN_USER }` | Logic Evaluator |
+| **Variable Set** (P3) | 'SET' variable '=' expr | Persisting data (Memory).         | ⭐⭐⭐ (High) | `SET user.strikes = user.strikes + 1` | DB (Variable storage), Bot |
+
+#### 1.1.2 Admin Deployment (The Compilation)
+
+- **Goal**: Admin writes a script, and the system converts it into the JSON format required by Flow 1.
+- **Design Pattern**: The Visitor Pattern.
+- **Why this solves the problem**: ANTLR generates a complex "Parse Tree" that is hard to work with. The Visitor pattern provides a structured way to "visit" every node in that tree and return a value (the simplified JSON). This separates the parsing logic from the rest of your application
+
+##### How does is work?
+
+1. Input:
+    - Raw Text String from Monaco Editor: `WORKFLOW demo ON message { ACTION: BAN_USER }`
+    - Context: The User's current state from the database (e.g., state="awaiting_reason").
+2. Logic (The "Tree Walker"):
+    - The raw text is fed into the generated `GuildFlowParser`, which creates a `Parse Tree`
+    - Your custom `GuildFlowCompiler` (which inherits from `Visitor`) is instantiated.
+    - You call `compiler.visit(tree)`.
+    - The Visit Loop:
+        - The compiler hits the Workflow node $\rightarrow$ calls `visitWorkflow_def`.
+        - `visitWorkflow_def` creates a dictionary { "type": "WORKFLOW" }.
+        - It then calls `self.visit(child)` on all children (`the Actions`).
+        - It aggregates the results into a list: "actions": `[{...}, {...}]`..
+3. Output:
+    - A clean JSON Object that is saved to the SQLite workflows table.
+    - Validation: If the Visitor hits a node it doesn't understand (or a syntax error occurs), it raises an exception immediately, preventing bad code from entering the DB.
+
+##### Associated Grammar Rules (Runtime)
+
+| Rule Name | Pseudo-Grammar | Purpose | Implementation Difficulty | Example | Related Modules |
+|---|---|---|---|---|---|
+| **Program Definition** (P1) | definition+ EOF | The Root. The entry point for the parser. Validates that the file contains at least one valid definition | ⭐ (Low) | (The entire file content) | Compiler (visitProg), Web UI (Validation) |
+| **Workflow Definition** (P1) | WORKFLOW name ON event { ... } | Defines the entry point for an automated process. | ⭐ (Low) | `WORKFLOW monitor_spam ON message { ... }` | Core Engine |
+| **State Definition** (P2) | 'STATE' ID '{' stmt* '}' | The Sub-Routine. Defines a discrete step in a multi-step process. Compiles into a separate JSON block. | ⭐ (Low) | `STATE welcome_step_2 { ... }` | Compiler (visitState_def), DB |
+| **Components Program** (P2) |'COMPONENTS:' '[' button... '] | The UI Builder. Defines interactive elements (Buttons) attached to a message. Essential for the "Interactive" requirement | ⭐⭐⭐ (High) Must map strings to Discord UI Objects.| `COMPONENTS: [ BUTTON "Yes" -> transition_to(next) ]` | Compiler (Validation), Bot (Dynamic UI Generation)|
 
 ### 1.2 Technology Stack
 
@@ -59,12 +128,9 @@ The system is a **monolithic Python application** (Bot + API) paired with a **Re
 
 ### 3.1 Rules Implementation
 
-| Rule Name               | Pseudo-Grammar                                        | Purpose                                                            | Implementation Difficulty | Example Usage                                                                 | Related Modules |
-|-------------------------|-------------------------------------------------------|--------------------------------------------------------------------|---------------------------|-------------------------------------------------------------------------------|-----------------|
-| **Workflow Definition** | WORKFLOW name ON event { ... }                        | Defines the entry point for an automated process.                  | ⭐ (Low)                   | `WORKFLOW monitor_spam ON message { ... }`                                    | Core Engine     |
-| **Trigger Filter**      | ON message WHERE content contains "text"              | Filters events to only proceed when specific criteria are met.     | ⭐⭐ (Med)                  | `ON message WHERE user_id IS NOT "admin" AND content CONTAINS "bad word"`     | Event Listener  |
-| **Action: Reply**       | ACTION: SEND_MESSAGE channel=#log "Bad word detected" | Sends a message to a specified channel or user.                    | ⭐ (Low)                   | `ACTION: SEND_MESSAGE channel=#mod_alerts "User {user} triggered a warning."` | Messaging API   |
-| **Action: Punish**      | ACTION: TIMEOUT_USER duration="1h"                    | Enforces moderation actions on a user.                             | ⭐ (Low)                   | `ACTION: TIMEOUT_USER duration="1h" reason="Spamming"`                        | Moderation API  |
+| Rule Name | Pseudo-Grammar | Purpose | Implementation Difficulty | Example | Related Modules |
+|---|---|---|---|---|---|
+
 | **Data Extraction**     | EXTRACT FIELD FROM input AS variable_name             | Parses data from the event for later use in actions or conditions. | ⭐⭐⭐ (High)                | `EXTRACT FIELD message.author.id AS user_id`                                  | Data Parser     |
 | **Conditional Logic**   | IF condition { ... } ELSE { ... }                     | Allows branching execution based on runtime conditions.            | ⭐⭐⭐ (High)                | `IF user_role IS "member" { ACTION: WARN_USER }`                              | Logic Evaluator |
 | **Variable Set** | SET user.strikes = user.strikes + 1 | Persisting data (Memory).         | ⭐⭐⭐ (High) |
