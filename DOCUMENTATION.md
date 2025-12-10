@@ -4,12 +4,15 @@
 **Architecture Strategy:** "Compiler-First" (DSL → JSON → Bot Execution).  
 **Deadline:** 23/12/2025.
 
-
 ## 1. System Architecture
 
 The system is a **monolithic Python application** (Bot + API) paired with a **React Frontend**. It does not use a live interpreter; instead, it compiles user scripts into a JSON "Instruction Set" that the bot reads and executes.
 
 ### 1.1 Data Flow
+
+#### 1.1.1 User Interaction (The Runtime Execution)
+
+**Goal**: The bot executes logic in real-time when a user chats in Discord. Design Pattern: The Command Pattern (Data-Driven) Why this solves the problem: It eliminates massive if/else chains in your bot code. Instead of hardcoding logic, the bot acts as a generic "engine" that executes whatever instructions are found in the JSON database. This decouples the logic (Python code) from the behavior (JSON data).
 
 1. **Input:** User types script in **React Web UI**.
 2. **Transport:** Frontend sends script string to **FastAPI Endpoint** (`POST /deploy`).
@@ -65,7 +68,6 @@ The system is a **monolithic Python application** (Bot + API) paired with a **Re
 | **Data Extraction**     | EXTRACT FIELD FROM input AS variable_name             | Parses data from the event for later use in actions or conditions. | ⭐⭐⭐ (High)                | `EXTRACT FIELD message.author.id AS user_id`                                  | Data Parser     |
 | **Conditional Logic**   | IF condition { ... } ELSE { ... }                     | Allows branching execution based on runtime conditions.            | ⭐⭐⭐ (High)                | `IF user_role IS "member" { ACTION: WARN_USER }`                              | Logic Evaluator |
 | **Variable Set** | SET user.strikes = user.strikes + 1 | Persisting data (Memory).         | ⭐⭐⭐ (High) |
-| **Conditional**  | IF user.strikes >= 3 { ... }        | Branching logic based on history. | ⭐⭐⭐ (High) |
 
 ### 3.2 Example
 
