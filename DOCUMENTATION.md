@@ -237,7 +237,6 @@ CREATE TABLE IF NOT EXISTS active_sessions (
 
 | Rule Name | Pseudo-Grammar | Purpose | Implementation Difficulty | Example | Related Modules |
 |---|---|---|---|---|---|
-
 | **Data Extraction**     | EXTRACT FIELD FROM input AS variable_name             | Parses data from the event for later use in actions or conditions. | ⭐⭐⭐ (High)                | `EXTRACT FIELD message.author.id AS user_id`                                  | Data Parser     |
 | **Conditional Logic**   | IF condition { ... } ELSE { ... }                     | Allows branching execution based on runtime conditions.            | ⭐⭐⭐ (High)                | `IF user_role IS "member" { ACTION: WARN_USER }`                              | Logic Evaluator |
 | **Variable Set** | SET user.strikes = user.strikes + 1 | Persisting data (Memory).         | ⭐⭐⭐ (High) |
