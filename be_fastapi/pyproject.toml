@@ -10,6 +10,7 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "discord-py>=2.6.4",
     "fastapi>=0.121.1",
+    "httpx>=0.28.1",
     "install-jdk==1.1.0",
     "pydantic>=2.12.4",
     "pyjwt>=2.10.1",
