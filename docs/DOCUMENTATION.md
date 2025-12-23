@@ -109,6 +109,61 @@ The system is a **monolithic Python application** (Bot + API) paired with a **Re
 | **State Definition** (P2) | 'STATE' ID '{' stmt* '}' | The Sub-Routine. Defines a discrete step in a multi-step process. Compiles into a separate JSON block. | ⭐ (Low) | `STATE welcome_step_2 { ... }` | Compiler (visitState_def), DB |
 | **Components Program** (P2) |'COMPONENTS:' '[' button... '] | The UI Builder. Defines interactive elements (Buttons) attached to a message. Essential for the "Interactive" requirement | ⭐⭐⭐ (High) Must map strings to Discord UI Objects.| `COMPONENTS: [ BUTTON "Yes" -> transition_to(next) ]` | Compiler (Validation), Bot (Dynamic UI Generation)|
 
+#### 1.1.3 Example of Grammar Rule
+
+``` g4
+grammar GuildFlow;
+
+// --- ENTRY POINT ---
+prog: definition+ EOF;
+
+definition
+    : workflow_def
+    | state_def
+    ;
+
+// --- WORKFLOW DEFINITIONS ---
+workflow_def
+    : 'WORKFLOW' ID 'ON' event_type ('WHERE' condition)? '{' statement* '}'
+    ;
+
+event_type: 'message' | 'member_join';
+
+// --- STATEMENTS ---
+statement
+    : action_statement
+    | if_statement
+    | set_statement
+    ;
+
+// --- ACTIONS (The "What") ---
+action_statement: 'ACTION:' action_command;
+
+action_command
+    : 'SEND_MESSAGE' 'channel' '=' ID 'content' '=' STRING
+    | 'REPLY_MESSAGE' 'content' '=' STRING
+    | 'ADD_ROLE' 'role' '=' STRING
+    | 'BAN_USER'
+    | 'TIMEOUT_USER' 'duration' '=' STRING
+    ;
+
+// --- LOGIC (The "How") ---
+if_statement: 'IF' condition '{' statement* '}' ('ELSE' '{' statement* '}')?;
+
+set_statement: 'SET' ID '=' expr;
+
+// --- EXPRESSIONS ---
+condition: expr comparator expr;
+expr: ID | INT | STRING | 'user.strikes';
+comparator: '==' | '!=' | 'contains' | '>=' | '<=';
+
+// --- LEXER TOKENS ---
+ID: [a-zA-Z_][a-zA-Z0-9_]*;
+INT: [0-9]+;
+STRING: '"' .*? '"';
+WS: [ \t\r\n]+ -> skip;
+```
+
 ### 1.2 Technology Stack
 
 - **Core Logic:** Python 3.10+
@@ -231,74 +286,11 @@ CREATE TABLE IF NOT EXISTS active_sessions (
 └── Dockerfile                # Deployment config
 ```
 
-## 3. Grammar rule
 
-### 3.1 Rules Implementation
 
-| Rule Name | Pseudo-Grammar | Purpose | Implementation Difficulty | Example | Related Modules |
-|---|---|---|---|---|---|
-| **Data Extraction**     | EXTRACT FIELD FROM input AS variable_name             | Parses data from the event for later use in actions or conditions. | ⭐⭐⭐ (High)                | `EXTRACT FIELD message.author.id AS user_id`                                  | Data Parser     |
-| **Conditional Logic**   | IF condition { ... } ELSE { ... }                     | Allows branching execution based on runtime conditions.            | ⭐⭐⭐ (High)                | `IF user_role IS "member" { ACTION: WARN_USER }`                              | Logic Evaluator |
-| **Variable Set** | SET user.strikes = user.strikes + 1 | Persisting data (Memory).         | ⭐⭐⭐ (High) |
+## 3. Implementation Details
 
-### 3.2 Example
-
-``` g4
-grammar GuildFlow;
-
-// --- ENTRY POINT ---
-prog: definition+ EOF;
-
-definition
-    : workflow_def
-    | state_def
-    ;
-
-// --- WORKFLOW DEFINITIONS ---
-workflow_def
-    : 'WORKFLOW' ID 'ON' event_type ('WHERE' condition)? '{' statement* '}'
-    ;
-
-event_type: 'message' | 'member_join';
-
-// --- STATEMENTS ---
-statement
-    : action_statement
-    | if_statement
-    | set_statement
-    ;
-
-// --- ACTIONS (The "What") ---
-action_statement: 'ACTION:' action_command;
-
-action_command
-    : 'SEND_MESSAGE' 'channel' '=' ID 'content' '=' STRING
-    | 'REPLY_MESSAGE' 'content' '=' STRING
-    | 'ADD_ROLE' 'role' '=' STRING
-    | 'BAN_USER'
-    | 'TIMEOUT_USER' 'duration' '=' STRING
-    ;
-
-// --- LOGIC (The "How") ---
-if_statement: 'IF' condition '{' statement* '}' ('ELSE' '{' statement* '}')?;
-
-set_statement: 'SET' ID '=' expr;
-
-// --- EXPRESSIONS ---
-condition: expr comparator expr;
-expr: ID | INT | STRING | 'user.strikes';
-comparator: '==' | '!=' | 'contains' | '>=' | '<=';
-
-// --- LEXER TOKENS ---
-ID: [a-zA-Z_][a-zA-Z0-9_]*;
-INT: [0-9]+;
-STRING: '"' .*? '"';
-WS: [ \t\r\n]+ -> skip;
-```
-
-## 4. Implementation Details
-
-### 4.1 The Compiler (Visitor Pattern)
+### 3.1 The Compiler (Visitor Pattern)
 
 Goal: Transform the complex ANTLR tree into a simple dictionary.
 
@@ -327,7 +319,7 @@ class GuildFlowCompiler(GuildFlowVisitor):
         }
 ```
 
-## 5. Developer Setup (Localhost)
+## 4. Developer Setup (Localhost)
 
 Use this method for development and the final demo if cloud deployment fails.
 
