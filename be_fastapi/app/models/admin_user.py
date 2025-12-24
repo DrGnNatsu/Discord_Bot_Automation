@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, Enum
+from app.enums.role import Role
 
 from app.db.session import Base
 from app.utils.generate_id import generate_uuid
@@ -12,4 +13,5 @@ class AdminUser(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     username = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)  # Store Hashed passwords, never plain text!
+    role = Column(Enum(Role), default=Role.admin, nullable=False)
     # discord_id = Column(String, nullable=True)     # Optional: For "Login with Discord"
