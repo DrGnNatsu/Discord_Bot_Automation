@@ -2,6 +2,7 @@ import "@/app/LandingPage.css"
 import {Button} from "@/components/ui/button.tsx";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {MessageSquare, Settings, Zap} from "lucide-react";
+import {useNavigate} from "react-router-dom";
 
 const features = [
     {
@@ -22,6 +23,8 @@ const features = [
 ]
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="landing-root">
       {/* Hero Section */}
@@ -35,7 +38,8 @@ export default function LandingPage() {
             analytics, user management, and advanced configuration—all in one place.
           </p>
           <div className="hero-actions">
-            <Button size="lg" className="text-base">
+            <Button size="lg" className="text-base"
+                    onClick={() => navigate('/home')}>
               Get Started
             </Button>
           </div>
@@ -72,7 +76,7 @@ export default function LandingPage() {
               <p className="cta-description">
                 Join thousands of Discord communities using our admin dashboard to manage their bots efficiently.
               </p>
-              <Button size="lg" className="cta-button">
+              <Button size="lg" className="cta-button" onClick={() => navigate('/home')}>
                 Start Managing Your Bot
               </Button>
             </CardContent>

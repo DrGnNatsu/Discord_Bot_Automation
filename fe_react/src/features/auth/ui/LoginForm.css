@@ -13,6 +13,10 @@
   @apply space-y-4;
 }
 
+.authInputHint {
+  @apply text-xs text-muted-foreground mt-1;
+}
+
 .login-footer {
   @apply text-center text-sm text-muted-foreground pt-4;
 }
@@ -20,3 +24,5 @@
 .back-link {
   @apply flex items-center justify-center gap-2 text-primary hover:underline cursor-pointer;
 }
+
+

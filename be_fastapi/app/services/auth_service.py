@@ -22,7 +22,7 @@ class AuthService:
     Authenticate user and generate JWT token upon successful login.
     :param login_form: LoginRequestDTO containing user login credentials.
     :param db: Database session.    
-    :return: LoginResponseDTO containing JWT token and user role.
+    :return: LoginResponseDTO containing JWT token.
     :raises UserNotFoundException: If the user with the provided email does not exist.
     :raises InvalidCredentialsException: If the provided password is incorrect. 
     """
@@ -36,7 +36,6 @@ class AuthService:
 
         data: dict = {
             "sub": str(user.id),
-            "role": user.role.value
         }
         expires_delta: timedelta = timedelta(hours=settings.ACCESS_TOKEN_EXPIRE_HOUR)
 
@@ -44,7 +43,6 @@ class AuthService:
 
         return LoginResponseDTO(
             jwt_token=access_token,
-            role=user.role # type: ignore
         )
 
     """
@@ -55,6 +53,8 @@ class AuthService:
     """
 
     def register_user(self, register_form: RegisterRequestDTO, db: Session) -> RegisterResponseDTO:
+        logger.info(f"Registration attempt for email: {register_form.email}")
+
         # Silent Failure
         if self.user_repo.get_user_by_email(str(register_form.email), db):
             logger.info(f"Registration attempt for existing email: {register_form.email}")
