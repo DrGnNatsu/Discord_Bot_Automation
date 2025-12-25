@@ -1,173 +1,161 @@
 grammar GuildFlow;
 
-// ========================================
-// A. THE STRUCTURE (P1)
-// ========================================
+// ====== The Structure ======
+prog: definition+ EOF;
 
-// Entry point: accepts multiple definitions
-prog
-    : (workflow_def | state_def)+ EOF
+definition
+    : workflow_def
+    | state_def
     ;
 
-// WORKFLOW definition: WORKFLOW name ON event { ... }
 workflow_def
-    : 'WORKFLOW' IDENTIFIER 'ON' IDENTIFIER '{' statement* '}'
+    : WORKFLOW IDENTIFIER ON event_type (WHERE condition)? LBRACE statement* RBRACE
     ;
 
-// STATE definition: STATE name { ... }
+event_type: IDENTIFIER;
+
 state_def
-    : 'STATE' IDENTIFIER '{' state_body '}'
+    : STATE IDENTIFIER LBRACE statement* RBRACE
     ;
 
-state_body
-    : ('ON_ENTRY' '{' statement* '}')?
-    | ('ON_EXIT' '{' statement* '}')?
-    | ('TRANSITION' 'TO' IDENTIFIER)?
-    ;
-
-// ========================================
-// B. THE ACTIONS (P1 - P2)
-// ========================================
-
-// All statements
+// Main statement rule collecting all possible operations
 statement
     : action_statement
+    | transition_statement
     | if_statement
     | set_statement
-    | extract_stmt
-    | components_block
+    | extract_statement
+    | component_statement
     ;
 
-// Action statement wrapper
+// ===== The Actions ======
 action_statement
-    : action_command ';'?
+    : ACTION COLON? command param*
     ;
 
-// Action commands
-action_command
-    : 'SEND_MESSAGE' '(' param_list ')'
-    | 'REPLY_MESSAGE' '(' param_list ')'
-    | 'BAN_USER' '(' param_list? ')'
-    | 'TIMEOUT_USER' '(' param_list ')'
-    | 'ACTION' ':' action_type param*
-    ;
-
-action_type
-    : 'BAN_USER'
-    | 'SEND_MESSAGE'
-    | 'TIMEOUT_USER'
+command
+    : 'SEND_MESSAGE'
     | 'REPLY_MESSAGE'
-    ;
-
-param_list
-    : param (',' param)*
+    | 'BAN_USER'
+    | 'TIMEOUT_USER'
+    | 'ADD_ROLE'
     ;
 
 param
-    : IDENTIFIER '=' value
-    | value
+    : IDENTIFIER EQ expr
     ;
 
-value
-    : STRING_LITERAL
-    | NUMBER
-    | IDENTIFIER
-    ;
-
-// ========================================
-// C. THE LOGIC & COMPONENTS (P2 - P3)
-// ========================================
-
-// IF statement with nested support
+// ===== The Logic & Flow ======
 if_statement
-    : 'IF' condition '{' statement* '}' ('ELSE' '{' statement* '}')?
+    : IF condition LBRACE statement* RBRACE (ELSE LBRACE statement* RBRACE)?
     ;
 
-// Conditions
 condition
-    : expression comparison_op expression
-    | expression 'CONTAINS' expression
-    | expression
+    : expr comparator expr
+    ;
+    
+comparator: '==' | '!=' | '>' | '<' | 'contains';
+
+transition_statement
+    : ENTER_STATE IDENTIFIER
     ;
 
-comparison_op
-    : '==' | '!=' | '>' | '<' | '>=' | '<='
+// ===== UI Components ======
+// This structure now supports any UI component (Button, SelectMenu, Modal, etc.)
+component_statement
+    : COMPONENTS COLON LBRACK component_element (COMMA component_element)* RBRACK
     ;
 
-expression
-    : IDENTIFIER ('.' IDENTIFIER)*
-    | NUMBER
-    | STRING_LITERAL
+component_element
+    : component_type LBRACE component_prop* RBRACE
     ;
 
-// SET statement
+// Allow any identifier as a component type (e.g., SelectMenu, TextInput)
+// We also explicitly allow BUTTON to prevent conflicts with the reserved keyword
+component_type: IDENTIFIER;
+
+component_prop
+    : prop_key EQ expr
+    ;
+
+// Allow keys to be any identifier or reserved keywords
+prop_key: IDENTIFIER; 
+
+// ===== Variable Assignments ======
 set_statement
-    : 'SET' IDENTIFIER '=' expression ';'?
+    : SET variable EQ expr
     ;
 
-// EXTRACT statement
-extract_stmt
-    : 'EXTRACT' IDENTIFIER 'FROM' expression ('USING' STRING_LITERAL)? ';'?
+extract_statement
+    : EXTRACT FIELD variable AS IDENTIFIER
     ;
 
-// COMPONENTS block
-components_block
-    : 'COMPONENTS' ':' '[' component (',' component)* ']'
+// ===== Expressions & Values (Enhanced) ======
+expr
+    : value
+    | variable
+    | LPAREN expr RPAREN
     ;
 
-component
-    : 'BUTTON' '{' button_property* '}'
+variable
+    : IDENTIFIER ('.' IDENTIFIER)*
     ;
 
-button_property
-    : IDENTIFIER ':' value
+// Enhanced value rule to support complex data structures (Arrays and Objects)
+value
+    : STRING
+    | NUMBER
+    | 'TRUE'
+    | 'FALSE'
+    | array_literal   // Support for lists (e.g., options=[...])
+    | object_literal  // Support for nested objects
     ;
 
-// ========================================
-// LEXER RULES
-// ========================================
+array_literal
+    : LBRACK (expr (COMMA expr)*)? RBRACK
+    ;
+
+object_literal
+    : LBRACE (component_prop (COMMA component_prop)*)? RBRACE
+    ;
+
+// ===== LEXICAL RULES ======
 
 // Keywords
 WORKFLOW: 'WORKFLOW';
-STATE: 'STATE';
 ON: 'ON';
+WHERE: 'WHERE';
+STATE: 'STATE';
 IF: 'IF';
 ELSE: 'ELSE';
+ENTER_STATE: 'ENTER_STATE'; 
 SET: 'SET';
 EXTRACT: 'EXTRACT';
-FROM: 'FROM';
-USING: 'USING';
-COMPONENTS: 'COMPONENTS';
-BUTTON: 'BUTTON';
+FIELD: 'FIELD';
+AS: 'AS';
 ACTION: 'ACTION';
-ON_ENTRY: 'ON_ENTRY';
-ON_EXIT: 'ON_EXIT';
-TRANSITION: 'TRANSITION';
-TO: 'TO';
-CONTAINS: 'CONTAINS';
 
-// Action types
-BAN_USER: 'BAN_USER';
-SEND_MESSAGE: 'SEND_MESSAGE';
-REPLY_MESSAGE: 'REPLY_MESSAGE';
-TIMEOUT_USER: 'TIMEOUT_USER';
+// Component Keywords
+COMPONENTS: 'COMPONENTS';
 
-// Literals
-STRING_LITERAL
-    : '"' (~["\r\n\\] | '\\' .)* '"'
-    ;
+// Separators and Operators
+LBRACE: '{';
+RBRACE: '}';
+LBRACK: '[';
+RBRACK: ']';
+LPAREN: '(';
+RPAREN: ')';
+COLON: ':';
+COMMA: ',';
+EQ: '=';
 
+// Identifiers and Literals
+IDENTIFIER: [a-zA-Z_][a-zA-Z0-9_]*;
 NUMBER
-    : [0-9]+
+    : [+-]? ( [0-9]+ ('.' [0-9]*)? | '.' [0-9]+ ) ([eE][+-]?[0-9]+)?
     ;
+STRING: '"' .*? '"';
 
-IDENTIFIER
-    : [a-zA-Z_][a-zA-Z0-9_]*
-    ;
-
-// Whitespace and comments
+// Skip rules
 WS: [ \t\r\n]+ -> skip;
-
-LINE_COMMENT: '//' ~[\r\n]* -> skip;
-
-BLOCK_COMMENT: '/*' .*? '*/' -> skip;
+COMMENT: '//' ~[\r\n]* -> skip;
