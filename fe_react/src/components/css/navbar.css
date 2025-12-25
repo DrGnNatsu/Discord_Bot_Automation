@@ -1,0 +1,29 @@
+@import "@/index.css";
+
+nav {
+    @apply sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60;
+}
+
+.navContainer {
+    @apply container mx-auto px-4;
+}
+
+.layoutNavbar {
+    @apply flex h-16 items-center justify-between;
+}
+
+.leftNavbar {
+    @apply flex items-center gap-2;
+}
+
+.iconBot {
+    @apply size-8 text-primary;
+}
+
+.leftNavbar > span {
+    @apply text-lg font-semibold;
+}
+
+.rightNavbar {
+    @apply flex items-center gap-3;
+}

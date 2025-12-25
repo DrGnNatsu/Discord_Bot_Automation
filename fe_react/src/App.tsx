@@ -1,10 +1,11 @@
-import ThemeToggle from "./components/theme-toggle";
+import LandingPage from "@/app/LandingPage.tsx";
+import Layout from "@/app/_layout.tsx";
 
 function App() {
   return (
-    <>
-      <ThemeToggle />
-    </>
+    <Layout>
+      <LandingPage />
+    </Layout>
   )
 }
 

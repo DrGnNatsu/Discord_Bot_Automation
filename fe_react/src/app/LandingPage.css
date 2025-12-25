@@ -1,0 +1,71 @@
+.landing-root {
+  @apply min-h-screen bg-background;
+}
+
+.landing-hero {
+  @apply container mx-auto px-4 py-20 md:py-32;
+}
+
+.hero-content-wrapper {
+  @apply max-w-4xl mx-auto text-center space-y-6;
+}
+
+.hero-title {
+  @apply text-4xl md:text-6xl font-bold tracking-tight text-balance;
+}
+
+.hero-subtitle {
+  @apply text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-balance;
+}
+
+.hero-actions {
+  @apply flex flex-col sm:flex-row gap-4 justify-center pt-4;
+}
+
+.features-section {
+  @apply container mx-auto px-4 py-16;
+}
+
+.features-wrapper {
+  @apply max-w-6xl mx-auto;
+}
+
+.features-title {
+  @apply text-3xl md:text-4xl font-bold text-center mb-12;
+}
+
+.features-grid {
+  @apply grid md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.feature-icon {
+  @apply w-10 h-10 mb-2 text-primary;
+}
+
+.cta-section {
+  @apply container mx-auto px-4 py-16 md:py-24;
+}
+
+.cta-wrapper {
+  @apply max-w-4xl mx-auto;
+}
+
+.cta-card {
+  @apply bg-linear-to-br from-primary/10 via-primary/5 to-background border-primary/20;
+}
+
+.cta-content {
+  @apply p-8 md:p-12 text-center space-y-6;
+}
+
+.cta-title {
+  @apply text-3xl md:text-4xl font-bold text-balance;
+}
+
+.cta-description {
+  @apply text-lg text-muted-foreground max-w-2xl mx-auto text-balance;
+}
+
+.cta-button {
+  @apply mt-4;
+}

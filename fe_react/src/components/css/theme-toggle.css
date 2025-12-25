@@ -1,0 +1,38 @@
+@import '@/index.css';
+
+.themeContainer {
+    @apply flex gap-4 items-center justify-center;
+}
+
+.theme-toggle-label {
+    @apply flex flex-row gap-4 items-center;
+}
+
+.theme-toggle-label > p {
+    @apply text-center;
+}
+
+.iconTheme {
+    @apply size-6;
+}
+
+@media (max-width: 768px) {
+    .themeContainer {
+        @apply flex-col gap-2 items-start;
+    }
+
+    .theme-toggle-label {
+        @apply flex-col gap-2 items-center;
+    }
+
+    .theme-toggle-label > p  {
+        @apply hidden;
+    }
+
+    #theme-toggle {
+        @apply hidden;
+    }
+}
+
+
+
