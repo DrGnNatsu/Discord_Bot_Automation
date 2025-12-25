@@ -42,22 +42,22 @@ def test_grammar():
         tree = parser.prog()
         
         # Print the parse tree in LISP format
-        print("\n✅ SUCCESS! Parse Tree (LISP format):")
+        print("\nSUCCESS! Parse Tree (LISP format):")
         print("-" * 60)
         print(tree.toStringTree(recog=parser))
         print("-" * 60)
         
         # Check for syntax errors
         if parser.getNumberOfSyntaxErrors() == 0:
-            print("\n✅ No syntax errors detected!")
-            print("✅ Grammar validation PASSED!")
+            print("\nNo syntax errors detected!")
+            print("Grammar validation PASSED!")
             return True
         else:
-            print(f"\n❌ Found {parser.getNumberOfSyntaxErrors()} syntax error(s)")
+            print(f"\nFound {parser.getNumberOfSyntaxErrors()} syntax error(s)")
             return False
             
     except Exception as e:
-        print(f"\n❌ ERROR: {str(e)}")
+        print(f"\nERROR: {str(e)}")
         import traceback
         traceback.print_exc()
         return False
