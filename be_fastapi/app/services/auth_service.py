@@ -28,7 +28,7 @@ class AuthService:
     """
 
     def authenticate_user(self, login_form: LoginRequestDTO, db: Session) -> LoginResponseDTO:
-        user = self.user_repo.get_user_by_email(login_form.email, db)
+        user = self.user_repo.get_user_by_email(str(login_form.email), db)
 
         # Verify password and user existence
         if not user or not verify_password(login_form.password, user.password_hash):
@@ -56,7 +56,7 @@ class AuthService:
 
     def register_user(self, register_form: RegisterRequestDTO, db: Session) -> RegisterResponseDTO:
         # Silent Failure
-        if self.user_repo.get_user_by_email(register_form.email, db):
+        if self.user_repo.get_user_by_email(str(register_form.email), db):
             logger.info(f"Registration attempt for existing email: {register_form.email}")
 
             return RegisterResponseDTO(message="User registered successfully")

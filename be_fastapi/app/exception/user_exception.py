@@ -1,6 +1,6 @@
 from starlette import status
 
-from exception.base_exception import AppException
+from app.exception.base_exception import AppException
 
 
 class UserCreateFailException(AppException):

@@ -9,7 +9,7 @@ class UserRepository:
 
     def create_user(self, data: RegisterCreateUserDTO, db: Session) -> AdminUser:
         user = AdminUser(
-            username=data.email,
+            username=str(data.email),
             password_hash=data.password,
             role=Role.admin
         )
