@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import "@/index.css";
+
+.login-container {
+  @apply flex min-h-[calc(100vh-4rem)] items-center justify-center p-4;
+}
+
+.login-card {
+  @apply w-full max-w-md;
+}
+
+.login-form {
+  @apply space-y-4;
+}
+
+.login-footer {
+  @apply text-center text-sm text-muted-foreground pt-4;
+}
+
+.back-link {
+  @apply flex items-center justify-center gap-2 text-primary hover:underline cursor-pointer;
+}

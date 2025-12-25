@@ -1,11 +1,9 @@
-import LandingPage from "@/app/LandingPage.tsx";
-import Layout from "@/app/_layout.tsx";
+import { RouterProvider } from "react-router-dom";
+import { router } from "@/router";
 
 function App() {
   return (
-    <Layout>
-      <LandingPage />
-    </Layout>
+    <RouterProvider router={router} />
   )
 }
 
