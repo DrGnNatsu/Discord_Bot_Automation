@@ -6,12 +6,17 @@ from app.compiler.fake_compiler import GuildFlowCompiler
 from app.db.session import get_db
 from app.models.workflow import Workflow
 from app.schemas.deploy import DeployRequest, DeploymentResponse
+from app.api.v1.depends import get_current_user
 
 router = APIRouter(prefix="/deploy", tags=["Deploy"])
 
 
 @router.post("", response_model=DeploymentResponse)
-async def deploy_workflow(payload: DeployRequest, db: Session = Depends(get_db)):
+async def deploy_workflow(
+        payload: DeployRequest, 
+        db: Session = Depends(get_db),
+        user_id: str = Depends(get_current_user)
+    ):
     print(f"🚀 Receiving Deployment: {payload.workflow_name}")
 
     try:
