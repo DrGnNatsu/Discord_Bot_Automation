@@ -8,12 +8,9 @@ from app.compiler.fake_compiler import GuildFlowCompiler
 
 router = APIRouter()
 
-class DeployRequest(BaseModel):
-    workflow_name: str
-    script_content: str
-    admin_id: str
+from app.schemas.deploy import DeployRequest, DeploymentResponse
 
-@router.post("/deploy")
+@router.post("/deploy", response_model=DeploymentResponse)
 async def deploy_workflow(payload: DeployRequest, db: Session = Depends(get_db)):
     print(f"🚀 Receiving Deployment: {payload.workflow_name}")
 
