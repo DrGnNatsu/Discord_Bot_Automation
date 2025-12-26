@@ -816,6 +816,9 @@ class GuildFlowParser ( Parser ):
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
             self.parser = parser
+            self._statement = None # StatementContext
+            self.then_block = list() # of StatementContexts
+            self.else_block = list() # of StatementContexts
 
         def IF(self):
             return self.getToken(GuildFlowParser.IF, 0)
@@ -836,15 +839,15 @@ class GuildFlowParser ( Parser ):
             else:
                 return self.getToken(GuildFlowParser.RBRACE, i)
 
+        def ELSE(self):
+            return self.getToken(GuildFlowParser.ELSE, 0)
+
         def statement(self, i:int=None):
             if i is None:
                 return self.getTypedRuleContexts(GuildFlowParser.StatementContext)
             else:
                 return self.getTypedRuleContext(GuildFlowParser.StatementContext,i)
 
-
-        def ELSE(self):
-            return self.getToken(GuildFlowParser.ELSE, 0)
 
         def getRuleIndex(self):
             return GuildFlowParser.RULE_if_statement
@@ -876,7 +879,8 @@ class GuildFlowParser ( Parser ):
             _la = self._input.LA(1)
             while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << GuildFlowParser.IF) | (1 << GuildFlowParser.ENTER_STATE) | (1 << GuildFlowParser.SET) | (1 << GuildFlowParser.EXTRACT) | (1 << GuildFlowParser.ACTION) | (1 << GuildFlowParser.COMPONENTS))) != 0):
                 self.state = 119
-                self.statement()
+                localctx._statement = self.statement()
+                localctx.then_block.append(localctx._statement)
                 self.state = 124
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
@@ -896,7 +900,8 @@ class GuildFlowParser ( Parser ):
                 _la = self._input.LA(1)
                 while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << GuildFlowParser.IF) | (1 << GuildFlowParser.ENTER_STATE) | (1 << GuildFlowParser.SET) | (1 << GuildFlowParser.EXTRACT) | (1 << GuildFlowParser.ACTION) | (1 << GuildFlowParser.COMPONENTS))) != 0):
                     self.state = 128
-                    self.statement()
+                    localctx._statement = self.statement()
+                    localctx.else_block.append(localctx._statement)
                     self.state = 133
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)

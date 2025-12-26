@@ -3,8 +3,8 @@ Test script to verify GuildFlow grammar parsing
 """
 import sys
 from antlr4 import *
-from antlr.src.antlr_build.GuildFlowLexer import GuildFlowLexer
-from antlr.src.antlr_build.GuildFlowParser import GuildFlowParser
+from antlr.compiled_files.GuildFlowLexer import GuildFlowLexer
+from antlr.compiled_files.GuildFlowParser import GuildFlowParser
 
 def test_grammar():
     # Test input - Anti-Raid example

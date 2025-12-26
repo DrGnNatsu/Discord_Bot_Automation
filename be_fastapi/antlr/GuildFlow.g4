@@ -47,7 +47,7 @@ param
 
 // ===== The Logic & Flow ======
 if_statement
-    : IF condition LBRACE statement* RBRACE (ELSE LBRACE statement* RBRACE)?
+    : IF condition LBRACE then_block+=statement* RBRACE (ELSE LBRACE else_block+=statement* RBRACE)?
     ;
 
 condition
