@@ -5,5 +5,17 @@
 }
 
 .deployment-panel-group {
-    @apply rounded-xl border border-border shadow-lg overflow-hidden bg-card;
+    @apply rounded-xl border border-border shadow-lg overflow-hidden bg-card h-[90vh];
+}
+
+.deployment-header {
+    @apply flex h-14 items-center justify-between px-4 bg-muted/50 border-b border-border;
+}
+
+.error-text {
+    @apply text-red-500 dark:text-red-400 font-bold bg-red-500/10 p-2 rounded-sm border border-red-500/20 mt-2;
+}
+
+.success-text {
+    @apply text-emerald-600 dark:text-emerald-400 font-medium;
 }

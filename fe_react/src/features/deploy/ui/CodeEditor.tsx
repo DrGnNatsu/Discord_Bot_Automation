@@ -20,10 +20,10 @@ export default function CodeEditor({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-4 py-2 bg-muted/50 border-b border-border">
+      <div className="deployment-header">
         <div className="flex items-center gap-2">
           <Terminal className="size-4 text-primary" />
-          <span className="text-sm font-medium">editor.js</span>
+          <span className="text-sm font-medium">BOT.dsl</span>
         </div>
         <Button
           size="sm"

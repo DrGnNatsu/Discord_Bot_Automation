@@ -10,7 +10,7 @@ export default function DeploymentView() {
   return (
     <div className="deployment-view-container">
       <ResizablePanelGroup
-        direction="horizontal"
+        orientation="horizontal"
         className="deployment-panel-group"
       >
         {/* Left Side: Monaco Editor */}

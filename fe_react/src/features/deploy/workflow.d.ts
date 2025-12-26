@@ -13,7 +13,7 @@ export interface Action {
   type: string;
   command: string;
   // Record<string, any> allows dynamic keys like 'channel', 'duration', etc.
-  params: Record<string, never>;
+  params: Record<string, any>;
 }
 
 // 2. The Core Data: The Workflow Logic
@@ -22,6 +22,6 @@ export interface WorkflowData {
   name: string;
   trigger: string;
   // It can be a complex object or null
-  filter: Record<string, never> | null;
+  filter: Record<string, any> | null;
   actions: Action[];
 }
