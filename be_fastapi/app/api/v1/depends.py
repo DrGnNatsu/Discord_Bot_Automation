@@ -3,6 +3,7 @@ from fastapi import Depends
 from app.repositories.user_repo import UserRepository
 from app.repositories.workflow_repo import WorkflowRepository
 from app.services.auth_service import AuthService
+from app.services.deploy_service import DeployService
 from app.services.token_service import TokenService
 from fastapi.security import OAuth2PasswordBearer
 
@@ -23,6 +24,11 @@ def get_auth_service(
         token_service: TokenService = Depends(get_token_service)
 ) -> AuthService:
     return AuthService(user_repo=user_repo, token_service=token_service)
+
+def get_deploy_service(
+        workflow_repo: WorkflowRepository = Depends(get_workflow_repo)
+) -> DeployService:
+    return DeployService(workflow_repo=workflow_repo)
 
 # 3. Check login
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
