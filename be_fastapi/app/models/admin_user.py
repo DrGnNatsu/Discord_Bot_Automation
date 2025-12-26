@@ -5,7 +5,6 @@ from app.utils.generate_id import generate_uuid
 
 
 # --- 1. ADMIN USERS ---
-# Stores login info for your React Dashboard
 class AdminUser(Base):
     __tablename__ = "admin_users"
 

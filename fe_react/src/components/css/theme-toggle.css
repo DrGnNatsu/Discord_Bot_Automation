@@ -1,0 +1,42 @@
+@import "@/index.css";
+
+.themeContainer {
+    @apply flex gap-4 items-center justify-center;
+}
+
+.theme-toggle-label {
+    @apply flex flex-row gap-4 items-center cursor-pointer transition-all duration-300 hover:opacity-80;
+}
+
+.theme-toggle-label > p {
+    @apply text-center;
+}
+
+.iconTheme {
+    @apply size-6 transition-transform duration-300;
+}
+
+.theme-toggle-label:hover .iconTheme {
+    @apply scale-110 rotate-12;
+}
+
+@media (max-width: 768px) {
+    .themeContainer {
+        @apply flex-col gap-2 items-start;
+    }
+
+    .theme-toggle-label {
+        @apply flex-col gap-2 items-center;
+    }
+
+    .theme-toggle-label > p  {
+        @apply hidden;
+    }
+
+    #theme-toggle {
+        @apply hidden;
+    }
+}
+
+
+

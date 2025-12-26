@@ -1,8 +1,13 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Define the database file path. 
-DATABASE_URL = "sqlite:///./database/guild_flow.db"
+# Get the project root directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DATABASE_PATH = os.path.join(BASE_DIR, "database", "guild_flow.db")
+
+# Use absolute path for SQLite
+DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 # connect_args={"check_same_thread": False} is CRITICAL for SQLite + FastAPI/Discord
 engine = create_engine(
