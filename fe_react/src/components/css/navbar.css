@@ -13,17 +13,33 @@ nav {
 }
 
 .leftNavbar {
-    @apply flex items-center gap-2;
+    @apply flex items-center gap-2 cursor-pointer transition-colors hover:text-primary;
 }
 
-.iconBot {
-    @apply size-8 text-primary;
-}
 
 .leftNavbar > span {
     @apply text-lg font-semibold;
 }
 
+.midNavbar {
+    @apply flex items-center gap-2 px-4 py-1.5 
+    rounded-full border border-border bg-accent/50 
+    cursor-pointer transition-all duration-300 
+    hover:bg-accent hover:border-primary/50 hover:text-primary hover:shadow-sm;
+}
+
+.midNavbar > span {
+    @apply text-base font-normal;
+}
+
 .rightNavbar {
     @apply flex items-center gap-3;
+}
+
+.rightNavbar button {
+    @apply transition-transform duration-200 hover:scale-105 active:scale-95;
+}
+
+.iconBot {
+    @apply size-8 text-primary;
 }

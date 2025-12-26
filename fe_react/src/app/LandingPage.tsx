@@ -39,7 +39,7 @@ export default function LandingPage() {
           </p>
           <div className="hero-actions">
             <Button size="lg" className="text-base"
-                    onClick={() => navigate('/home')}>
+                    onClick={() => navigate('/login')}>
               Get Started
             </Button>
           </div>
@@ -76,7 +76,7 @@ export default function LandingPage() {
               <p className="cta-description">
                 Join thousands of Discord communities using our admin dashboard to manage their bots efficiently.
               </p>
-              <Button size="lg" className="cta-button" onClick={() => navigate('/home')}>
+              <Button size="lg" className="cta-button" onClick={() => navigate('/login')}>
                 Start Managing Your Bot
               </Button>
             </CardContent>

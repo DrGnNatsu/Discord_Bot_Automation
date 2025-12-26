@@ -9,7 +9,7 @@ import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {ArrowLeft, Bot} from "lucide-react";
 
-import {AuthService} from "@/features/auth/services/authService"
+import {AuthService} from "@/features/auth/service/authService"
 import {useAuthStore} from "@/store/authStore.ts";
 import type {LoginRequest} from "@/features/auth/auth";
 
@@ -42,7 +42,7 @@ export default function LoginForm() {
       setAuth(data.jwt_token);
       console.log("Login successful:", data);
 
-      navigate('/home');
+      navigate('/dashboard');
     } catch (err: unknown) {
       console.error("Login failed:", err);
       let errorMessage = "Login failed. Please check your credentials.";
@@ -56,6 +56,8 @@ export default function LoginForm() {
       setIsLoading(false);
     }
   };
+
+
 
   return (
     <div className="login-container">

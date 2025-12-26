@@ -5,7 +5,7 @@
 }
 
 .theme-toggle-label {
-    @apply flex flex-row gap-4 items-center;
+    @apply flex flex-row gap-4 items-center cursor-pointer transition-all duration-300 hover:opacity-80;
 }
 
 .theme-toggle-label > p {
@@ -13,7 +13,11 @@
 }
 
 .iconTheme {
-    @apply size-6;
+    @apply size-6 transition-transform duration-300;
+}
+
+.theme-toggle-label:hover .iconTheme {
+    @apply scale-110 rotate-12;
 }
 
 @media (max-width: 768px) {
