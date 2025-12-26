@@ -1,0 +1,9 @@
+@import "@/index.css";
+
+.deployment-view-container {
+    @apply h-full overflow-hidden;
+}
+
+.deployment-panel-group {
+    @apply rounded-xl border border-border shadow-lg overflow-hidden bg-card;
+}

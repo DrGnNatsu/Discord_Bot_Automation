@@ -3,7 +3,7 @@ import LandingPage from "@/app/LandingPage";
 import LoginPage from "@/app/auth/LoginPage";
 import Layout from "@/app/_layout";
 import ProtectedRoute from "@/components/ProtectedRoute"
-import DashboardPage from "@/app/home/DashboardPage.tsx"
+import DashboardPage from "@/app/dashboard/DashboardPage"
 
 export const router = createBrowserRouter([
   {

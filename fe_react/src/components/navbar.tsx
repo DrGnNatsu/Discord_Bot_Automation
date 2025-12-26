@@ -1,9 +1,9 @@
-import ThemeToggle from "@/components/theme-toggle.tsx"
+import ThemeToggle from "@/components/theme-toggle"
 import {Bot, Monitor} from "lucide-react";
-import {Button} from "@/components/ui/button.tsx";
+import {Button} from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import "@/components/css/navbar.css"
-import {useAuthStore} from "@/store/authStore.ts";
+import {useAuthStore} from "@/store/authStore";
 
 export default function Navbar() {
   const navigate = useNavigate();

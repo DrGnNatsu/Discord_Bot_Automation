@@ -1,7 +1,6 @@
 import * as React from "react";
-import { isAxiosError } from "axios";
-
 import {useState} from "react";
+import {isAxiosError} from "axios";
 import {useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -48,7 +47,13 @@ export default function LoginForm() {
       let errorMessage = "Login failed. Please check your credentials.";
 
       if (isAxiosError(err)) {
-        errorMessage = err.response?.data?.message || errorMessage;
+        if (err.code === "ECONNABORTED") {
+          errorMessage = "The connection timed out. Please try again later.";
+        } else if (!err.response) {
+          errorMessage = "No response from server. Please check your internet connection.";
+        } else {
+          errorMessage = err.response?.data?.message || err.response?.data?.detail || errorMessage;
+        }
       }
 
       setError(errorMessage);
@@ -56,7 +61,6 @@ export default function LoginForm() {
       setIsLoading(false);
     }
   };
-
 
 
   return (
