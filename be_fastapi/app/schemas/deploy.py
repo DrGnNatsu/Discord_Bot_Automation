@@ -24,7 +24,7 @@ class WorkflowDataModel(BaseModel):
 class DeployRequest(BaseModel):
     workflow_name: str
     script_content: str
-    admin_id: str
+    # admin_id: str
 
 
 class DeploymentResponse(BaseModel):
