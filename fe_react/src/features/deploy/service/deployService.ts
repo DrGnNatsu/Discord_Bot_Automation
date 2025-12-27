@@ -1,7 +1,7 @@
 import {axiosInstance} from "@/api/axiosInstance";
 import { API_ENDPOINTS_V1 } from "@/constants/api";
 
-import type {DeploymentRequest, DeploymentResponse} from "@/features/deploy/workflow"
+import type {DeploymentRequest, DeploymentResponse, Workflow} from "@/features/deploy/workflow"
 
 export const DeploymentService = {
   deploy: async ({workflow_name, script_content}: DeploymentRequest): Promise<DeploymentResponse> => {
@@ -10,5 +10,14 @@ export const DeploymentService = {
       script_content,
     });
     return response.data;
+  },
+
+  getWorkflows: async (): Promise<Workflow[]> => {
+    const response = await axiosInstance.get<Workflow[]>(API_ENDPOINTS_V1.DEPLOYMENT.LIST_WORKFLOWS);
+    return response.data;
+  },
+
+  deleteWorkflow: async (workflowId: string): Promise<void> => {
+    await axiosInstance.delete(API_ENDPOINTS_V1.DEPLOYMENT.DELETE_WORKFLOW(workflowId));
   },
 }

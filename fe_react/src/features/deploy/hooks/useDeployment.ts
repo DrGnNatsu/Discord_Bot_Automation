@@ -11,7 +11,7 @@ WORKFLOW my_workflow ON message {
     ACTION: REPLY_MESSAGE content="Hello from GuildFlow!"
 }`;
 
-export const useDeployment = () => {
+export const useDeployment = (onSuccess?: () => void) => {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [response, setResponse] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,6 +42,10 @@ export const useDeployment = () => {
         `Trigger: ${data.data.trigger}\n` +
         `Message: ${data.message}`
       );
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err: unknown) {
       console.error("Deployment failed:", err);
       

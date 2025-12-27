@@ -37,6 +37,7 @@ class WorkflowResponse(BaseModel):
     id: str
     name: str
     trigger_event: str
+    source_code: Optional[str] = None
     is_active: bool
     created_at: datetime
     updated_at: datetime
