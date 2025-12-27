@@ -5,7 +5,7 @@ description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
     "alembic==1.17.2",
-    "antlr4-python3-runtime==4.13.2",
+    "antlr4-python3-runtime==4.9.2",
     "antlr4-tools==0.2.2",
     "argon2-cffi>=25.1.0",
     "discord-py>=2.6.4",

@@ -7,4 +7,4 @@ api_router = APIRouter()
 
 # 2. Register all feature routers here
 api_router.include_router(auth_api.router)
-api_router.include_router(deploy.router, tags=["Deploy"])
+api_router.include_router(deploy_api.router)
