@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     HASH_ALGORITHM: str = os.getenv("HASH_ALGORITHM")
     ACCESS_TOKEN_EXPIRE_HOUR: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_HOUR"))
+    DISCORD_TOKEN: str = os.getenv("DISCORD_TOKEN")
     API_V1_STR: str = "/api/v1"
 
     class Config:
