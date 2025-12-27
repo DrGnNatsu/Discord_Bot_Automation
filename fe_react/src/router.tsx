@@ -1,9 +1,10 @@
-import {createBrowserRouter} from "react-router-dom";
 import LandingPage from "@/app/LandingPage";
-import LoginPage from "@/app/auth/LoginPage";
 import Layout from "@/app/_layout";
-import ProtectedRoute from "@/components/ProtectedRoute"
-import DashboardPage from "@/app/dashboard/DashboardPage"
+import LoginPage from "@/app/auth/LoginPage";
+import DashboardPage from "@/app/dashboard/DashboardPage";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { DocumentationPage } from "@/features/documentation";
+import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: "docs",
+        element: (
+          <ProtectedRoute>
+            <DocumentationPage />
           </ProtectedRoute>
         )
       }
