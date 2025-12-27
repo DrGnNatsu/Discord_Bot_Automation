@@ -22,13 +22,17 @@ nav {
 }
 
 .midNavbar {
+    @apply flex items-center gap-4;
+}
+
+.navItem {
     @apply flex items-center gap-2 px-4 py-1.5 
     rounded-full border border-border bg-accent/50 
     cursor-pointer transition-all duration-300 
     hover:bg-accent hover:border-primary/50 hover:text-primary hover:shadow-sm;
 }
 
-.midNavbar > span {
+.navItem > span {
     @apply text-base font-normal;
 }
 
@@ -42,4 +46,8 @@ nav {
 
 .iconBot {
     @apply size-8 text-primary;
+}
+
+.iconBot_small {
+    @apply size-4;
 }

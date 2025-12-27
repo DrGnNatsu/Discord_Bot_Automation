@@ -92,9 +92,11 @@ extract_statement
 
 // ===== Expressions & Values (Enhanced) ======
 expr
-    : value
+    : LPAREN expr RPAREN
+    | left=expr op=('*'|'/') right=expr
+    | left=expr op=('+'|'-') right=expr
+    | value
     | variable
-    | LPAREN expr RPAREN
     ;
 
 variable
