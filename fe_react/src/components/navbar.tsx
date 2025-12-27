@@ -1,9 +1,9 @@
-import ThemeToggle from "@/components/theme-toggle"
-import {Bot, Monitor} from "lucide-react";
-import {Button} from "@/components/ui/button";
+import "@/components/css/navbar.css";
+import ThemeToggle from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/authStore";
+import { Book, Bot, Monitor } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "@/components/css/navbar.css"
-import {useAuthStore} from "@/store/authStore";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -27,9 +27,15 @@ export default function Navbar() {
             </div>
 
             {isAuthenticated && (
-              <div className="midNavbar" onClick={() => navigate("/dashboard")}>
-                <Monitor className="iconBot_small" />
-                <span>Dashboard</span>
+              <div className="midNavbar">
+                <div className="navItem" onClick={() => navigate("/dashboard")}>
+                  <Monitor className="iconBot_small" />
+                  <span>Dashboard</span>
+                </div>
+                <div className="navItem" onClick={() => navigate("/docs")}>
+                  <Book className="iconBot_small" />
+                  <span>Docs</span>
+                </div>
               </div>
             )}
 
