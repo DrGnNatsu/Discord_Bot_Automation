@@ -18,15 +18,13 @@ class WorkflowDataModel(BaseModel):
     type: str  # e.g., "WORKFLOW"
     name: str  # e.g., "mock_workflow"
     trigger: str  # e.g., "message"
-    filter: Optional[Dict[str, Any]] = None  # Can be None or a filter object
-    actions: List[ActionModel]
-
-
-# 3. The API Response Wrapper
+    condition: Optional[Dict[str, Any]] = None 
+    steps: List[Dict[str, Any]]  
+    
 class DeployRequest(BaseModel):
     workflow_name: str
     script_content: str
-    admin_id: str
+    # admin_id: str
 
 
 class DeploymentResponse(BaseModel):

@@ -9,14 +9,17 @@ from app.exception.auth_exception import InvalidCredentialsException, \
 from app.repositories.user_repo import UserRepository
 from app.schemas.login import LoginResponseDTO, LoginRequestDTO
 from app.schemas.register import RegisterRequestDTO, RegisterResponseDTO, RegisterCreateUserDTO
-from app.utils.auth import verify_password, create_access_token, is_password_valid, get_password_hash
+from app.services.token_service import TokenService
+from app.utils.auth import verify_password, is_password_valid, get_password_hash
+from app.services.token_service import TokenService
 
 logger = logging.getLogger(__name__)
 
 
 class AuthService:
-    def __init__(self, user_repo: UserRepository):
+    def __init__(self, user_repo: UserRepository, token_service: TokenService):
         self.user_repo = user_repo
+        self.token_service = token_service
 
     """
     Authenticate user and generate JWT token upon successful login.
@@ -39,7 +42,7 @@ class AuthService:
         }
         expires_delta: timedelta = timedelta(hours=settings.ACCESS_TOKEN_EXPIRE_HOUR)
 
-        access_token = create_access_token(data=data, expires_delta=expires_delta)
+        access_token = self.token_service.create_access_token(data=data, expires_delta=expires_delta)
 
         return LoginResponseDTO(
             jwt_token=access_token,
