@@ -61,7 +61,7 @@ export const useDeployment = () => {
           if (typeof detail === "string") {
             // Check if it contains line information for syntax errors (legacy)
             if (detail.includes("Line")) {
-              errorMessage = `❌ Syntax Error: ${detail}`;
+              errorMessage = `Syntax Error: ${detail}`;
             } else {
               errorMessage = detail;
             }
@@ -70,7 +70,7 @@ export const useDeployment = () => {
             // { error: "Syntax Error", message: "...", line: 1, column: 1 }
             if (detail.error && detail.message) {
               const location = detail.line ? ` (Line ${detail.line}, Col ${detail.column})` : "";
-              errorMessage = `❌ ${detail.error}${location}: ${detail.message}`;
+              errorMessage = `${detail.error}${location}: ${detail.message}`;
             } else {
               errorMessage = JSON.stringify(detail);
             }

@@ -10,6 +10,8 @@ async def execute_instructions(actions_list, event: discord.Message):
     Iterates through the JSON list and executes actions.
     Supports Recursion for 'LOGIC_IF' blocks.
     """
+    if not actions_list: return
+
     for step in actions_list:
         step_type = step.get("type")
 
@@ -32,13 +34,14 @@ async def execute_instructions(actions_list, event: discord.Message):
         # CASE B: Logic Branch (Recursion)
         elif step_type == "LOGIC_IF":
             condition = step.get("condition")
-            # Evaluate: If True, run the 'body'
+            # Evaluate: If True, run the 'body' (or 'then_branch')
             if evaluate_condition(condition, event):
                 print(f"   🤔 Condition matched. Entering IF block.")
-                await execute_instructions(step.get("body", []), event)
+                body = step.get("body") or step.get("then_branch", [])
+                await execute_instructions(body, event)
             else:
-                # Optional: Run 'else_body'
-                else_body = step.get("else_body", [])
+                # Optional: Run 'else_body' (or 'else_branch')
+                else_body = step.get("else_body") or step.get("else_branch", [])
                 if else_body:
                     print(f"   🤔 Condition failed. Entering ELSE block.")
                     await execute_instructions(else_body, event)

@@ -1,4 +1,5 @@
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -31,3 +32,14 @@ class DeploymentResponse(BaseModel):
     status: Status  # "success" or "error"
     message: str  # Readable message
     data: WorkflowDataModel
+
+class WorkflowResponse(BaseModel):
+    id: str
+    name: str
+    trigger_event: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True

@@ -1,12 +1,13 @@
 import re
 import logging
+from typing import List
 
 from fastapi import HTTPException, Depends, APIRouter, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.exception.deploy_exception import NoWorkflowFoundException, CompilationFailedException
-from app.schemas.deploy import DeployRequest, DeploymentResponse
+from app.schemas.deploy import DeployRequest, DeploymentResponse, WorkflowResponse
 from app.services.deploy_service import DeployService
 from app.api.v1.depends import get_current_user, get_deploy_service
 
@@ -25,15 +26,6 @@ async def deploy_workflow(
 ):
     """
     Deploy a workflow by extracting the name from the script or using the provided name.
-    
-    Args:
-        payload: Deployment request containing script content and optional workflow name
-        db: Database session
-        user_id: Authenticated user ID
-        deploy_service: Deploy service instance
-        
-    Returns:
-        DeploymentResponse with status, message, and compiled workflow data
     """
     try:
         # 1. EXTRACT NAME
@@ -86,3 +78,38 @@ async def deploy_workflow(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to deploy workflow: {str(e)}"
         )
+
+
+@router.get("/workflows", response_model=List[WorkflowResponse])
+async def list_workflows(
+    db: Session = Depends(get_db),
+    deploy_service: DeployService = Depends(get_deploy_service)
+):
+    """
+    Get all workflows.
+    """
+    try:
+        return deploy_service.get_all_workflows(db)
+    except Exception as e:
+        logger.error(f"Failed to list workflows: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/workflows/{workflow_id}", status_code=status.HTTP_200_OK)
+async def delete_workflow(
+    workflow_id: str,
+    db: Session = Depends(get_db),
+    deploy_service: DeployService = Depends(get_deploy_service)
+):
+    """
+    Delete a specific workflow and its active sessions.
+    """
+    try:
+        deploy_service.delete_workflow(workflow_id, db)
+        return {"message": "Workflow deleted successfully"}
+    except NoWorkflowFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to delete workflow {workflow_id}: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
