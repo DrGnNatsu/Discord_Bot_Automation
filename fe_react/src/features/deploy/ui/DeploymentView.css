@@ -1,11 +1,11 @@
 @import "@/index.css";
 
 .deployment-view-container {
-    @apply h-full overflow-hidden;
+    @apply h-full flex flex-col gap-6 overflow-y-auto pb-10;
 }
 
 .deployment-panel-group {
-    @apply rounded-xl border border-border shadow-lg overflow-hidden bg-card h-[90vh];
+    @apply rounded-xl border border-border shadow-lg overflow-hidden bg-card shrink-0 h-[600px];
 }
 
 .deployment-header {

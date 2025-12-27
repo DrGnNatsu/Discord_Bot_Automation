@@ -1,4 +1,5 @@
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -22,7 +23,7 @@ class WorkflowDataModel(BaseModel):
     steps: List[Dict[str, Any]]  
     
 class DeployRequest(BaseModel):
-    workflow_name: str
+    workflow_name: Optional[str] = None
     script_content: str
     # admin_id: str
 
@@ -31,3 +32,15 @@ class DeploymentResponse(BaseModel):
     status: Status  # "success" or "error"
     message: str  # Readable message
     data: WorkflowDataModel
+
+class WorkflowResponse(BaseModel):
+    id: str
+    name: str
+    trigger_event: str
+    source_code: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True

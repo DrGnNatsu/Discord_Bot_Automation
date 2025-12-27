@@ -3,10 +3,11 @@ from typing import Dict, Any, List
 
 from sqlalchemy.orm import Session
 
-from compiler.compiler import compile_code
+from compiler.compiler import compile_code, SyntaxException
 from app.exception.deploy_exception import NoWorkflowFoundException, CompilationFailedException
 from app.repositories.workflow_repo import WorkflowRepository
-from app.schemas.deploy import DeploymentResponse
+from app.schemas.deploy import DeploymentResponse, WorkflowResponse
+from app.models import Workflow
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class DeployService:
     MESSAGES = {
         "updated": "Workflow updated successfully",
         "created": "Workflow created successfully",
+        "deleted": "Workflow deleted successfully",
     }
 
     def __init__(self, workflow_repo: WorkflowRepository):
@@ -39,6 +41,7 @@ class DeployService:
         Raises:
             CompilationFailedException: If compilation fails
             NoWorkflowFoundException: If no workflow found in script
+            SyntaxException: If syntax errors are found
         """
         try:
             compiled_workflows = compile_code(script_content)
@@ -49,9 +52,33 @@ class DeployService:
             return compiled_workflows
         except NoWorkflowFoundException:
             raise
+        except SyntaxException:
+            raise
         except Exception as e:
             logger.error(f"Compilation error: {str(e)}", exc_info=True)
             raise CompilationFailedException(detail=str(e))
+
+    def get_all_workflows(self, db: Session) -> List[Workflow]:
+        """Get all workflows."""
+        return self.workflow_repo.get_all_workflows(db)
+
+    def delete_workflow(self, workflow_id: str, db: Session):
+        """
+        Delete a workflow by ID. 
+        Also deletes active sessions to prevent state corruption.
+        """
+        workflow = self.workflow_repo.get_workflow_by_id(db, workflow_id)
+        if not workflow:
+            raise NoWorkflowFoundException(f"Workflow with ID {workflow_id} not found")
+
+        # 1. Clear active sessions first (Safety)
+        self.workflow_repo.delete_active_sessions_by_workflow(db, workflow_id)
+        
+        # 2. Delete workflow
+        self.workflow_repo.delete_workflow(db, workflow)
+        db.commit()
+        
+        logger.info(f"Deleted workflow {workflow_id} and associated sessions.")
 
     def deploy_workflow(
         self,

@@ -25,3 +25,13 @@ export interface WorkflowData {
   filter: Record<string, any> | null;
   actions: Action[];
 }
+
+export interface Workflow {
+  id: string;
+  name: string;
+  trigger_event: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  source_code?: string;
+}

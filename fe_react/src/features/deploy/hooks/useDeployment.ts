@@ -11,7 +11,7 @@ WORKFLOW my_workflow ON message {
     ACTION: REPLY_MESSAGE content="Hello from GuildFlow!"
 }`;
 
-export const useDeployment = () => {
+export const useDeployment = (onSuccess?: () => void) => {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [response, setResponse] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +31,7 @@ export const useDeployment = () => {
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
-      toast.success(`✅ Workflow '${data.data.name}' deployed successfully!`, {
+      toast.success(`Workflow '${data.data.name}' deployed successfully!`, {
         duration: 5000,
       });
 
@@ -42,6 +42,10 @@ export const useDeployment = () => {
         `Trigger: ${data.data.trigger}\n` +
         `Message: ${data.message}`
       );
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err: unknown) {
       console.error("Deployment failed:", err);
       
@@ -59,11 +63,20 @@ export const useDeployment = () => {
           // Extract detailed error message
           const detail = err.response?.data?.detail;
           if (typeof detail === "string") {
-            // Check if it contains line information for syntax errors
+            // Check if it contains line information for syntax errors (legacy)
             if (detail.includes("Line")) {
-              errorMessage = `❌ Syntax Error: ${detail}`;
+              errorMessage = `Syntax Error: ${detail}`;
             } else {
               errorMessage = detail;
+            }
+          } else if (typeof detail === "object" && detail !== null) {
+            // Handle structured syntax error
+            // { error: "Syntax Error", message: "...", line: 1, column: 1 }
+            if (detail.error && detail.message) {
+              const location = detail.line ? ` (Line ${detail.line}, Col ${detail.column})` : "";
+              errorMessage = `${detail.error}${location}: ${detail.message}`;
+            } else {
+              errorMessage = JSON.stringify(detail);
             }
           } else {
             errorMessage = err.response?.data?.message || errorMessage;

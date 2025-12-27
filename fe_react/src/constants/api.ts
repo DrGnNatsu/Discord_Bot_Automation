@@ -3,6 +3,8 @@ export const API_ENDPOINTS_V1 = {
     LOGIN: `/v1/auth/login`,
   },
   DEPLOYMENT: {
-    DEPLOY: `/v1/deploy`, 
+    DEPLOY: `/v1/deploy`,
+    LIST_WORKFLOWS: `/v1/deploy/workflows`,
+    DELETE_WORKFLOW: (workflowId: string) => `/v1/deploy/workflows/${workflowId}`,
   }
 }
