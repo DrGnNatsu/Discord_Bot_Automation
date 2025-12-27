@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 
 from sqlalchemy.orm import Session
 
-from compiler.compiler import compile_code
+from compiler.compiler import compile_code, SyntaxException
 from app.exception.deploy_exception import NoWorkflowFoundException, CompilationFailedException
 from app.repositories.workflow_repo import WorkflowRepository
 from app.schemas.deploy import DeploymentResponse
@@ -39,6 +39,7 @@ class DeployService:
         Raises:
             CompilationFailedException: If compilation fails
             NoWorkflowFoundException: If no workflow found in script
+            SyntaxException: If syntax errors are found
         """
         try:
             compiled_workflows = compile_code(script_content)
@@ -48,6 +49,8 @@ class DeployService:
                 
             return compiled_workflows
         except NoWorkflowFoundException:
+            raise
+        except SyntaxException:
             raise
         except Exception as e:
             logger.error(f"Compilation error: {str(e)}", exc_info=True)

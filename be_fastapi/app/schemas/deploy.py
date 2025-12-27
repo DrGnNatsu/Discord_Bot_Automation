@@ -22,7 +22,7 @@ class WorkflowDataModel(BaseModel):
     steps: List[Dict[str, Any]]  
     
 class DeployRequest(BaseModel):
-    workflow_name: str
+    workflow_name: Optional[str] = None
     script_content: str
     # admin_id: str
 

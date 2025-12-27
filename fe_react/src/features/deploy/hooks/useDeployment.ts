@@ -31,7 +31,7 @@ export const useDeployment = () => {
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
-      toast.success(`✅ Workflow '${data.data.name}' deployed successfully!`, {
+      toast.success(`Workflow '${data.data.name}' deployed successfully!`, {
         duration: 5000,
       });
 
@@ -59,11 +59,20 @@ export const useDeployment = () => {
           // Extract detailed error message
           const detail = err.response?.data?.detail;
           if (typeof detail === "string") {
-            // Check if it contains line information for syntax errors
+            // Check if it contains line information for syntax errors (legacy)
             if (detail.includes("Line")) {
               errorMessage = `❌ Syntax Error: ${detail}`;
             } else {
               errorMessage = detail;
+            }
+          } else if (typeof detail === "object" && detail !== null) {
+            // Handle structured syntax error
+            // { error: "Syntax Error", message: "...", line: 1, column: 1 }
+            if (detail.error && detail.message) {
+              const location = detail.line ? ` (Line ${detail.line}, Col ${detail.column})` : "";
+              errorMessage = `❌ ${detail.error}${location}: ${detail.message}`;
+            } else {
+              errorMessage = JSON.stringify(detail);
             }
           } else {
             errorMessage = err.response?.data?.message || errorMessage;

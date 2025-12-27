@@ -4,19 +4,19 @@ from antlr.compiled_files.GuildFlowLexer import GuildFlowLexer
 from antlr.compiled_files.GuildFlowParser import GuildFlowParser
 from .visitor import GuildFlowCompiler 
 
-class CompilerError(Exception):
-    """Custom exception for compilation errors"""
-    pass
+class SyntaxException(Exception):
+    """Custom exception for syntax errors with location details"""
+    def __init__(self, message, line, column):
+        self.message = message
+        self.line = line
+        self.column = column
+        super().__init__(self.message)
 
 class SyntaxErrorListener(ErrorListener):
-    """Custom error listener to capture syntax errors"""
-    def __init__(self):
-        super().__init__()
-        self.errors = []
-    
+    """Custom error listener to capture syntax errors and raise immediately"""
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        error_msg = f"Line {line}:{column} - {msg}"
-        self.errors.append(error_msg)
+        # Raise immediately on first error to match requested behavior
+        raise SyntaxException(msg, line, column)
 
 def compile_code(source_code: str):
     """
@@ -31,39 +31,31 @@ def compile_code(source_code: str):
         dict: JSON representation of workflow/state definitions
         
     Raises:
-        CompilerError: If there are syntax or compilation errors
+        SyntaxException: If there are syntax errors
+        Exception: For other compilation errors
     """
-    try:
-        # 1. Initialize ANTLR Pipeline
-        input_stream = InputStream(source_code)
-        lexer = GuildFlowLexer(input_stream)
-        
-        # Add error listener to lexer
-        error_listener = SyntaxErrorListener()
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(error_listener)
-        
-        stream = CommonTokenStream(lexer)
-        parser = GuildFlowParser(stream)
-        
-        # Add error listener to parser
-        parser.removeErrorListeners()
-        parser.addErrorListener(error_listener)
-        
-        # 2. Create parse tree
-        tree = parser.prog()
-        
-        # Check for syntax errors
-        if error_listener.errors:
-            raise CompilerError("Syntax errors found:\n" + "\n".join(error_listener.errors))
-        
-        # 3. Use Visitor to convert to JSON
-        visitor = GuildFlowCompiler()
-        result = visitor.visit(tree)
-        
-        return result
-        
-    except CompilerError:
-        raise
-    except Exception as e:
-        raise CompilerError(f"Compilation failed: {str(e)}")
+    # 1. Initialize ANTLR Pipeline
+    input_stream = InputStream(source_code)
+    lexer = GuildFlowLexer(input_stream)
+    
+    # Add error listener to lexer
+    error_listener = SyntaxErrorListener()
+    lexer.removeErrorListeners()
+    lexer.addErrorListener(error_listener)
+    
+    stream = CommonTokenStream(lexer)
+    parser = GuildFlowParser(stream)
+    
+    # Add error listener to parser
+    parser.removeErrorListeners()
+    parser.addErrorListener(error_listener)
+    
+    # 2. Create parse tree
+    # This will raise SyntaxException if errors are found
+    tree = parser.prog()
+    
+    # 3. Use Visitor to convert to JSON
+    visitor = GuildFlowCompiler()
+    result = visitor.visit(tree)
+    
+    return result
